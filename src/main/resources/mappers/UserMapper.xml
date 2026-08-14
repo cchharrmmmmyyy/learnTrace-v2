@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.learntrace.mybatis.mapper.UsersMapper" >
+    <select id="selectById" resultType="User">
+        select user_id as id, user_name as name, password_hash,role
+        from lt_user
+        where user_id = #{id};
+    </select>
+    <select id="selectByName" resultType="User">
+        select user_id as id,user_name as name,password_hash,role
+        from lt_user
+        where user_name = #{name}
+    </select>
+    <insert id="insert">
+        insert into lt_user
+        (user_id, user_name, password_hash,role, create_time)
+        value
+        (#{id}, #{name}, #{password_hash},#{role}, #{createTime});
+    </insert>
+    <delete id="deleteById">
+        delete
+        from lt_user
+        where user_id = #{id};
+    </delete>
+    <update id="update">
+        update lt_user
+        <set>
+            <if test="user.name != null">user_name = #{user.name}</if>
+            <if test="user.password !=null">password_hash = #{user.password_hash}</if>
+        </set>
+        where user_id=#{id}
+    </update>
+</mapper>
