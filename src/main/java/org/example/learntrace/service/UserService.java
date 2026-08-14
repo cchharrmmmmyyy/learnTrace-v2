@@ -1,10 +1,12 @@
-package org.example.learntrace.Server;
+package org.example.learntrace.service;
 
+import org.example.learntrace.BusinessException;
 import org.example.learntrace.mybatis.entity.User;
 import org.example.learntrace.mybatis.mapper.UsersMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -12,14 +14,13 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
+import static org.example.learntrace.ErrorCode.*;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
-public class userServer {
+public class UserService {
     @Autowired
     private UsersMapper usersMapper;
     @Autowired
@@ -27,37 +28,30 @@ public class userServer {
     @Autowired
     private JwtEncoder jwtEncoder;
 
-    public Map<String,String> insertUser(User user) {
+    public void insertUser(User user) {
         try {
-            int response = usersMapper.insert(user);
-            if (response == 1) {
-                return Map.of("status", "success","message","账户创建成功");
-            }
-            return Map.of("status", "fail","message","账户创建失败");
+            usersMapper.insert(user);
         }catch (DuplicateKeyException e) {
-            // 唯一索引冲突 = 用户名重复
-            return Map.of("status", "fail","message","用户名已存在");
+            //用户名重复
+            throw new BusinessException(USER_NAME_DUPLICATE,HttpStatus.BAD_REQUEST,"用户名已存在");
         }catch (DataIntegrityViolationException  e) {
             // 其他的完整性错误（如 NOT NULL）
-            return Map.of("status","fail","message","账户创建失败");
+            throw new BusinessException(USER_OPERATE_FAIL,HttpStatus.BAD_REQUEST,"账户创建失败，字段非法");
         }
     }
 
-    public Map<String, String> deleteUser(String id, Jwt jwt) {
+    public void deleteUser(String id, Jwt jwt) {
         String userId = jwt.getClaimAsString("id");
-
         if(!userId.equals(id)) {
-            return Map.of("status", "fail","message","只能注销自己的账户！");
+            throw new BusinessException(USER_NO_PERMISSION,HttpStatus.FORBIDDEN,"只能注销自己的账户！");
         }
         int response = usersMapper.deleteById(id);
-
-        if (response == 1) {
-            return Map.of("status", "success","message","注销成功");
+        if (response != 1) {
+            throw new BusinessException(USER_OPERATE_FAIL,HttpStatus.BAD_REQUEST,"注销失败，用户不存在");
         }
-        return Map.of("status", "fail","message","注销失败");
     }
 
-    public Map<String, String> login(User user) {
+    public String login(User user) {
 
         //待认证凭证
         Authentication loginRequest = new UsernamePasswordAuthenticationToken(user.getName(),user.getPassword());
@@ -79,13 +73,11 @@ public class userServer {
                     .claim("id",dbUser.getId())
                     .build();//组装载荷
 
-            //组装token
-            String token = jwtEncoder.encode(JwtEncoderParameters.from(header,claims)).getTokenValue();
-            return Map.of("status","success","token",token);
+            //组装返回token
+            return jwtEncoder.encode(JwtEncoderParameters.from(header,claims)).getTokenValue();
 
         }catch (AuthenticationException e) {
-            System.out.println(e);
-            return Map.of("status","fail","message","用户名或密码错误");
+            throw new BusinessException(USER_LOGIN_FAIL,HttpStatus.UNAUTHORIZED,"用户名或密码错误");
         }
     }
 }

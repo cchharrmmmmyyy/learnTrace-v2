@@ -1,7 +1,9 @@
 package org.example.learntrace;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.nimbusds.jose.proc.SecurityContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,6 +27,13 @@ import javax.crypto.spec.SecretKeySpec;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    @Autowired
+    private ObjectMapper objectMapper;// 用来把 ApiResponse 序列化成 JSON
+    @Autowired
+    private JwtAuthEntryPoint jwtAuthEntryPoint;
+    @Autowired
+    private JwtAccessDeniedHandler jwtAccessDeniedHandler;
+
     @Bean
     //网页访问规则,返回一整套安全过滤器链
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -39,7 +48,9 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/sessions","POST")
                                 ).permitAll()//放行完全不验证的URL
                         .anyRequest().authenticated())//剩下的全部验证
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));//启用jwt
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults())
+                        .authenticationEntryPoint(jwtAuthEntryPoint)
+                        .accessDeniedHandler(jwtAccessDeniedHandler));//启用jwt
         return http.build();//返回组装好的链条
     }
 
