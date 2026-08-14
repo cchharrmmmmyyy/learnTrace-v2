@@ -2,7 +2,7 @@ package org.example.learntrace;
 
 //错误常量
 public class ErrorCode {
-    private ErrorCode(){};
+    private ErrorCode(){}
 
 
     // ==========业务错误码==========

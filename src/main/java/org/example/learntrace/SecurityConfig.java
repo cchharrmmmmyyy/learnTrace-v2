@@ -1,6 +1,5 @@
 package org.example.learntrace;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +26,6 @@ import javax.crypto.spec.SecretKeySpec;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    @Autowired
-    private ObjectMapper objectMapper;// 用来把 ApiResponse 序列化成 JSON
     @Autowired
     private JwtAuthEntryPoint jwtAuthEntryPoint;
     @Autowired
