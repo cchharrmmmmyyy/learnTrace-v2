@@ -19,7 +19,8 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> success(T data) {
         return success("success",data);
     }
-    public static <T> ApiResponse<T> success(String message) {
+    //只有消息，没有数据，data 为 null
+    public static <T> ApiResponse<T> message(String message) {
         return success(message,null);
     }
     public static <T> ApiResponse<T> success() {

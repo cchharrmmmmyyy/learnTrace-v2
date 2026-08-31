@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.learntrace.mybatis.mapper.ArticleMapper" >
+    <resultMap id="articleListMap" type="ArticleSimpleVO">
+        <id     property="id"        column="article_id"/>
+        <result property="title"     column="title"/>
+        <result property="wordCount" column="word_count"/>
+        <result property="difficulty" column="difficulty"/>
+        <collection property="theme"
+                    ofType="string"
+                    select="selectThemesByArticleId"
+                    column="article_id"/>
+    </resultMap>
+
+    <resultMap id="articleDetailMap" type="ArticleDetail">
+        <id     property="id"        column="article_id"/>
+        <result property="title"     column="title"/>
+        <result property="wordCount" column="word_count"/>
+        <result property="difficulty" column="difficulty"/>
+        <result property="content"   column="content"/>
+        <result property="questions" column="questions"/>
+        <collection property="theme"
+                    ofType="string"
+                    select="selectThemesByArticleId"
+                    column="article_id"/>
+    </resultMap>
+
+    <!-- 文章列表：多条件筛选，不传的参数自动不过滤 -->
+    <select id="queryArticles" resultMap="articleListMap">
+        select a.article_id, a.title, a.word_count, a.difficulty
+        from lt_article a
+        <where>
+            <if test="title != null and title != ''">
+                and a.title like concat('%', #{title}, '%')
+            </if>
+            <if test="difficulty != null and difficulty != ''">
+                and a.difficulty = #{difficulty}
+            </if>
+            <if test="theme != null and theme != ''">
+                and exists (
+                        select 1
+                        from lt_article_theme at
+                        join lt_theme t on t.theme_id = at.theme_id
+                        where at.article_id = a.article_id
+                        and t.name = #{theme}
+                        )
+            </if>
+        </where>
+        order by a.article_id
+        limit 50
+    </select>
+
+    <!-- 文章详情：正文和题目原样取出（JSON 字符串），由 Service 解析 -->
+    <select id="selectDetailById" resultMap="articleDetailMap">
+        select article_id, title, word_count, difficulty, content, questions
+        from lt_article
+        where article_id = #{articleId}
+    </select>
+
+    <!-- 子查询：按文章查它的所有主题名 -->
+    <select id="selectThemesByArticleId" resultType="string">
+        select t.name
+        from lt_article_theme at
+        join lt_theme t on t.theme_id = at.theme_id
+        where at.article_id = #{article_id}
+    </select>
+</mapper>

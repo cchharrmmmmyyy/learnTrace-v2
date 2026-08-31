@@ -38,7 +38,7 @@ public class UserController {
         userServer.insertUser(user);
         String message = "账户创建成功";
 
-        return ApiResponse.success(message);
+        return ApiResponse.message(message);
     }
 
     //登录
@@ -51,11 +51,11 @@ public class UserController {
 
         return ApiResponse.success("登录成功", Map.of("token", token));
     }
-
+    //删除
     @DeleteMapping("/users/{id}")
     public ApiResponse<?> delete(@PathVariable  String id, @AuthenticationPrincipal Jwt jwt){
         userServer.deleteUser(id,jwt);
         String message = "注销成功";
-        return ApiResponse.success(message);
+        return ApiResponse.message(message);
     }
 }

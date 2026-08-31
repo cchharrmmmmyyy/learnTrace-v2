@@ -20,6 +20,10 @@ public class ErrorCode {
     public static final int TOKEN_INVALID = 1006;
     /** 1007 权限不足，禁止访问 */
     public static final int PERMISSION_DENIED = 1007;
+    /** 1008 请求参数不合法 */
+    public static final int PARAM_INVALID = 1008;
+    /** 1009 文章不存在 */
+    public static final int ARTICLE_NOT_FOUND = 1009;
 
     /** 服务器内部异常 */
     public static final int SERVER_ERROR = 5000;

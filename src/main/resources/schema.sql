@@ -30,6 +30,7 @@ CREATE TABLE  IF NOT EXISTS lt_article (
 
                             PRIMARY KEY (article_id),
                             KEY idx_lt_article_difficulty (difficulty)
+
 ) ENGINE = InnoDB
   DEFAULT CHARACTER SET = utf8mb4
   COLLATE = utf8mb4_unicode_ci
@@ -37,7 +38,51 @@ CREATE TABLE  IF NOT EXISTS lt_article (
 
 
 -- =====================================================
--- 3. 阅读会话表
+-- 3. 主题表
+-- =====================================================
+CREATE TABLE  IF NOT EXISTS lt_theme (
+                            theme_id  VARCHAR(32)  NOT NULL COMMENT '主题ID，如 theme_001',
+                            name      VARCHAR(64)  NOT NULL COMMENT '主题名称',
+
+                            PRIMARY KEY (theme_id),
+                            UNIQUE KEY uk_lt_theme_name (name)
+
+) ENGINE = InnoDB
+  DEFAULT CHARACTER SET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci
+    COMMENT = '主题表';
+
+
+-- =====================================================
+-- 4. 文章-主题关联表（多对多）
+-- =====================================================
+CREATE TABLE  IF NOT EXISTS lt_article_theme (
+                            article_id  VARCHAR(32) NOT NULL COMMENT '文章ID',
+                            theme_id    VARCHAR(32) NOT NULL COMMENT '主题ID',
+
+                            PRIMARY KEY (article_id, theme_id),
+                            KEY idx_lt_article_theme_theme (theme_id),
+
+                            CONSTRAINT fk_lt_article_theme_article
+                                FOREIGN KEY (article_id)
+                                    REFERENCES lt_article (article_id)
+                                    ON UPDATE CASCADE
+                                    ON DELETE CASCADE,
+
+                            CONSTRAINT fk_lt_article_theme_theme
+                                FOREIGN KEY (theme_id)
+                                    REFERENCES lt_theme (theme_id)
+                                    ON UPDATE CASCADE
+                                    ON DELETE CASCADE
+
+) ENGINE = InnoDB
+  DEFAULT CHARACTER SET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci
+    COMMENT = '文章主题关联表';
+
+
+-- =====================================================
+-- 5. 阅读会话表
 -- =====================================================
 CREATE TABLE  IF NOT EXISTS lt_session (
                             session_id      VARCHAR(64) NOT NULL COMMENT '会话ID，如 sess_20260427_001',
